@@ -1,0 +1,8 @@
+{
+  "name": "OfflineShop",
+  "short_description": "Receive payments for products offline!",
+	"tile": "/offlineshop/static/image/offlineshop.png",
+  "contributors": [
+    "fiatjaf"
+  ]
+}

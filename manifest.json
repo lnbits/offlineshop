@@ -1,0 +1,9 @@
+{
+    "repos": [
+        {
+            "id": "offlineshop",
+            "organisation": "lnbits",
+            "repository": "offlineshop"
+        }
+    ]
+}
