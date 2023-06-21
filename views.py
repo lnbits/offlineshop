@@ -45,7 +45,7 @@ async def print_qr_codes(request: Request):
     name="offlineshop.confirmation_code",
     response_class=HTMLResponse,
 )
-async def confirmation_code(p: str = Query(...)):
+async def confirmation_code(p: str):
     style = "<style>* { font-size: 100px}</style>"
 
     payment_hash = p

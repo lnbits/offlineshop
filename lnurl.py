@@ -11,7 +11,7 @@ from .crud import get_item, get_shop
 
 
 @offlineshop_ext.get("/lnurl/{item_id}", name="offlineshop.lnurl_response")
-async def lnurl_response(req: Request, item_id: int = Query(...)) -> dict:
+async def lnurl_response(req: Request, item_id: int) -> dict:
     item = await get_item(item_id)
     if not item:
         return {"status": "ERROR", "reason": "Item not found."}
