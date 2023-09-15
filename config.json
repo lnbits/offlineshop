@@ -4,5 +4,6 @@
 	"tile": "/offlineshop/static/image/offlineshop.png",
   "contributors": [
     "fiatjaf"
-  ]
+  ],
+  "min_lnbits_version": "0.XX.0"
 }
