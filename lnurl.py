@@ -27,7 +27,7 @@ async def lnurl_response(req: Request, item_id: int) -> dict:
 
     resp = LnurlPayResponse(
         callback=ClearnetUrl(
-            req.url_for("offlineshop.lnurl_callback", item_id=item.id), scheme="https"
+            str(req.url_for("offlineshop.lnurl_callback", item_id=item.id))
         ),
         minSendable=MilliSatoshi(price_msat),
         maxSendable=MilliSatoshi(price_msat),
