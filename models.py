@@ -104,12 +104,12 @@ class Item(BaseModel):
         return cls(**data)
 
     def lnurl(self, req: Request) -> str:
-        return lnurl_encode(req.url_for("offlineshop.lnurl_response", item_id=self.id))
+        return lnurl_encode(str(req.url_for("offlineshop.lnurl_response", item_id=self.id)))
 
     def values(self, req: Request):
         values = self.dict()
         values["lnurl"] = lnurl_encode(
-            req.url_for("offlineshop.lnurl_response", item_id=self.id)
+            str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
         )
         return values
 
@@ -129,7 +129,7 @@ class Item(BaseModel):
 
         return UrlAction(
             url=ClearnetUrl(
-                req.url_for("offlineshop.confirmation_code", p=payment_hash),
+                str(req.url_for("offlineshop.confirmation_code", p=payment_hash)),
                 scheme="https",
             ),
             description=Max144Str(
