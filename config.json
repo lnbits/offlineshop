@@ -2,8 +2,30 @@
   "name": "OfflineShop",
   "short_description": "Receive payments for products offline!",
   "tile": "/offlineshop/static/image/offlineshop.png",
+  "min_lnbits_version": "0.11.0",
   "contributors": [
-    "fiatjaf"
+    {
+      "name": "fiatjaf",
+      "uri": "https://github.com/fiatjaf",
+      "role": "Contributor"
+    }
   ],
-  "min_lnbits_version": "0.11.0"
+  "images": [
+    {
+      "uri": "https://raw.githubusercontent.com/lnbits/offlineshop/main/static/image/1.png",
+      "link": "https://www.youtube.com/embed/_XAvM_LNsoo?si=CaUKtvNwcbnJtJyo"
+    },
+    {
+      "uri": "https://raw.githubusercontent.com/lnbits/offlineshop/main/static/image/2.png"
+    },
+    {
+      "uri": "https://raw.githubusercontent.com/lnbits/offlineshop/main/static/image/3.png"
+    },
+    {
+      "uri": "https://raw.githubusercontent.com/lnbits/offlineshop/main/static/image/4.png"
+    }
+  ],
+  "description_md": "https://raw.githubusercontent.com/lnbits/offlineshop/main/description.md",
+  "terms_and_conditions_md": "https://raw.githubusercontent.com/lnbits/offlineshop/main/toc.md",
+  "license": "MIT"
 }
