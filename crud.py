@@ -1,17 +1,18 @@
 from typing import List, Optional
 
-from lnbits.db import SQLITE
+from lnbits.db import SQLITE, Database
 
-from . import db
 from .models import Item, Shop
 from .wordlists import animals
+
+db = Database("ext_offlineshop")
 
 
 async def create_shop(*, wallet_id: str) -> int:
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
 
-    result = await (method)(
+    result = await method(
         f"""
         INSERT INTO offlineshop.shops (wallet, wordlist, method)
         VALUES (?, ?, 'wordlist')
@@ -25,8 +26,8 @@ async def create_shop(*, wallet_id: str) -> int:
         return result[0]  # type: ignore
 
 
-async def get_shop(id: int) -> Optional[Shop]:
-    row = await db.fetchone("SELECT * FROM offlineshop.shops WHERE id = ?", (id,))
+async def get_shop(shop_id: int) -> Optional[Shop]:
+    row = await db.fetchone("SELECT * FROM offlineshop.shops WHERE id = ?", (shop_id,))
     return Shop(**row) if row else None
 
 
@@ -62,7 +63,8 @@ async def add_item(
 ) -> int:
     result = await db.execute(
         """
-        INSERT INTO offlineshop.items (shop, name, description, image, price, unit, fiat_base_multiplier)
+        INSERT INTO offlineshop.items
+        (shop, name, description, image, price, unit, fiat_base_multiplier)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (shop, name, description, image, price, unit, fiat_base_multiplier),
@@ -96,9 +98,9 @@ async def update_item(
     return item_id
 
 
-async def get_item(id: int) -> Optional[Item]:
+async def get_item(item_id: int) -> Optional[Item]:
     row = await db.fetchone(
-        "SELECT * FROM offlineshop.items WHERE id = ?  LIMIT 1", (id,)
+        "SELECT * FROM offlineshop.items WHERE id = ?  LIMIT 1", (item_id,)
     )
     return Item.from_row(row) if row else None
 

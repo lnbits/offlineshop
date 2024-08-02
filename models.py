@@ -6,7 +6,6 @@ from sqlite3 import Row
 from typing import Dict, List, Optional
 
 from lnurl import encode as lnurl_encode
-from lnurl.models import ClearnetUrl, Max144Str, UrlAction
 from lnurl.types import LnurlPayMetadata
 from pydantic import BaseModel
 from starlette.requests import Request
@@ -104,7 +103,9 @@ class Item(BaseModel):
         return cls(**data)
 
     def lnurl(self, req: Request) -> str:
-        return lnurl_encode(str(req.url_for("offlineshop.lnurl_response", item_id=self.id)))
+        return lnurl_encode(
+            str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
+        )
 
     def values(self, req: Request):
         values = self.dict()
@@ -120,19 +121,3 @@ class Item(BaseModel):
             metadata.append(self.image.split(":")[1].split(","))
 
         return LnurlPayMetadata(json.dumps(metadata))
-
-    def success_action(
-        self, shop: Shop, payment_hash: str, req: Request
-    ) -> Optional[UrlAction]:
-        if not shop.wordlist:
-            return None
-
-        return UrlAction(
-            url=ClearnetUrl(
-                str(req.url_for("offlineshop.confirmation_code", p=payment_hash)),
-                scheme="https",
-            ),
-            description=Max144Str(
-                "Open to get the confirmation code for your purchase."
-            ),
-        )
