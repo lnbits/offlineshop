@@ -1,14 +1,13 @@
 from http import HTTPStatus
 from typing import Optional
 
-from fastapi import Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from lnbits.core.models import WalletTypeInfo
+from lnbits.decorators import get_key_type
+from lnbits.utils.exchange_rates import currencies
 from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
 from pydantic import BaseModel
 
-from lnbits.decorators import WalletTypeInfo, get_key_type
-from lnbits.utils.exchange_rates import currencies
-
-from . import offlineshop_ext
 from .crud import (
     add_item,
     delete_item_from_shop,
@@ -19,13 +18,15 @@ from .crud import (
 )
 from .models import ShopCounter
 
+offlineshop_api_router = APIRouter()
 
-@offlineshop_ext.get("/api/v1/currencies")
+
+@offlineshop_api_router.get("/api/v1/currencies")
 async def api_list_currencies_available():
     return list(currencies.keys())
 
 
-@offlineshop_ext.get("/api/v1/offlineshop")
+@offlineshop_api_router.get("/api/v1/offlineshop")
 async def api_shop_from_wallet(
     r: Request, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
@@ -37,11 +38,14 @@ async def api_shop_from_wallet(
             **shop.dict(),
             **{"otp_key": shop.otp_key, "items": [item.values(r) for item in items]},
         }
-    except LnurlInvalidUrl:
+    except LnurlInvalidUrl as exc:
         raise HTTPException(
             status_code=HTTPStatus.UPGRADE_REQUIRED,
-            detail="LNURLs need to be delivered over a publically accessible `https` domain or Tor.",
-        )
+            detail="""
+            LNURLs need to be delivered over a
+            publically accessible `https` domain or Tor.
+            """,
+        ) from exc
 
 
 class CreateItemsData(BaseModel):
@@ -53,8 +57,8 @@ class CreateItemsData(BaseModel):
     fiat_base_multiplier: int = Query(100, ge=1)
 
 
-@offlineshop_ext.post("/api/v1/offlineshop/items")
-@offlineshop_ext.put("/api/v1/offlineshop/items/{item_id}")
+@offlineshop_api_router.post("/api/v1/offlineshop/items")
+@offlineshop_api_router.put("/api/v1/offlineshop/items/{item_id}")
 async def api_add_or_update_item(
     data: CreateItemsData, item_id=None, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
@@ -74,7 +78,10 @@ async def api_add_or_update_item(
             if image_size > 100:
                 raise HTTPException(
                     status_code=HTTPStatus.BAD_REQUEST,
-                    detail=f"Image size is too big, {int(image_size)}Kb. Max: 100kb, Compress the image at https://tinypng.com, or use an URL.",
+                    detail=f"""
+                    Image size is too big, {int(image_size)}Kb. Max: 100kb,
+                    Compress the image at https://tinypng.com, or use an URL.
+                    """,
                 )
     if data.unit != "sat":
         data.price = data.price * 100
@@ -103,7 +110,7 @@ async def api_add_or_update_item(
         )
 
 
-@offlineshop_ext.delete("/api/v1/offlineshop/items/{item_id}")
+@offlineshop_api_router.delete("/api/v1/offlineshop/items/{item_id}")
 async def api_delete_item(item_id, wallet: WalletTypeInfo = Depends(get_key_type)):
     shop = await get_or_create_shop_by_wallet(wallet.wallet.id)
     assert shop
@@ -116,7 +123,7 @@ class CreateMethodData(BaseModel):
     wordlist: Optional[str]
 
 
-@offlineshop_ext.put("/api/v1/offlineshop/method")
+@offlineshop_api_router.put("/api/v1/offlineshop/method")
 async def api_set_method(
     data: CreateMethodData, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
