@@ -11,7 +11,7 @@ async def create_shop(*, wallet_id: str) -> int:
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
 
-    result = await (method)(
+    result = await method(
         f"""
         INSERT INTO offlineshop.shops (wallet, wordlist, method)
         VALUES (?, ?, 'wordlist')
