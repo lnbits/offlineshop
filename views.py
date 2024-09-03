@@ -74,8 +74,7 @@ async def confirmation_code(p: str):
 
     if not payment.extra and not payment.extra.get("item"):
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail="Payment is missing extra data."
+            status_code=HTTPStatus.BAD_REQUEST, detail="Payment is missing extra data."
         )
 
     item_id = payment.extra.get("item")
