@@ -22,7 +22,7 @@ offlineshop_lnurl_router = APIRouter()
 
 
 @offlineshop_lnurl_router.get("/lnurl/{item_id}", name="offlineshop.lnurl_response")
-async def lnurl_response(req: Request, item_id: int) -> dict:
+async def lnurl_response(req: Request, item_id: str) -> dict:
     item = await get_item(item_id)
     if not item:
         return {"status": "ERROR", "reason": "Item not found."}
@@ -52,7 +52,7 @@ async def lnurl_response(req: Request, item_id: int) -> dict:
 
 
 @offlineshop_lnurl_router.get("/lnurl/cb/{item_id}", name="offlineshop.lnurl_callback")
-async def lnurl_callback(request: Request, item_id: int):
+async def lnurl_callback(request: Request, item_id: str):
     item = await get_item(item_id)
     if not item:
         return {"status": "ERROR", "reason": "Couldn't find item."}

@@ -2,9 +2,9 @@ import base64
 import hashlib
 import json
 from collections import OrderedDict
-from sqlite3 import Row
-from typing import Dict, List, Optional
+from typing import Optional
 
+from fastapi import Query
 from lnurl import encode as lnurl_encode
 from lnurl.types import LnurlPayMetadata
 from pydantic import BaseModel
@@ -12,11 +12,11 @@ from starlette.requests import Request
 
 from .helpers import totp
 
-shop_counters: Dict = {}
+shop_counters: dict = {}
 
 
 class ShopCounter:
-    wordlist: List[str]
+    wordlist: list[str]
     fulfilled_payments: OrderedDict
     counter: int
 
@@ -34,7 +34,7 @@ class ShopCounter:
         shop_counter.counter = -1
         shop_counter.wordlist = shop.wordlist.split("\n")
 
-    def __init__(self, wordlist: List[str]):
+    def __init__(self, wordlist: list[str]):
         self.wordlist = wordlist
         self.fulfilled_payments = OrderedDict()
         self.counter = -1
@@ -57,15 +57,17 @@ class ShopCounter:
         return word
 
 
+class CreateShop(BaseModel):
+    wallet: str
+    method: Optional[str] = "wordlist"
+    wordlist: Optional[str] = None
+
+
 class Shop(BaseModel):
-    id: int
+    id: str
     wallet: str
     method: str
     wordlist: str
-
-    @classmethod
-    def from_row(cls, row: Row):
-        return cls(**dict(row))
 
     @property
     def otp_key(self) -> str:
@@ -85,8 +87,8 @@ class Shop(BaseModel):
 
 
 class Item(BaseModel):
-    shop: int
-    id: int
+    shop: str
+    id: str
     name: str
     description: str
     image: Optional[str]
@@ -94,13 +96,6 @@ class Item(BaseModel):
     price: float
     unit: str
     fiat_base_multiplier: int
-
-    @classmethod
-    def from_row(cls, row: Row) -> "Item":
-        data = dict(row)
-        if data["unit"] != "sat" and data["fiat_base_multiplier"]:
-            data["price"] /= data["fiat_base_multiplier"]
-        return cls(**data)
 
     def lnurl(self, req: Request) -> str:
         return lnurl_encode(
@@ -121,3 +116,12 @@ class Item(BaseModel):
             metadata.append(self.image.split(":")[1].split(","))
 
         return LnurlPayMetadata(json.dumps(metadata))
+
+
+class CreateItem(BaseModel):
+    name: str
+    description: str
+    price: float
+    unit: str
+    fiat_base_multiplier: int = Query(100, ge=1)
+    image: Optional[str] = None

@@ -29,7 +29,7 @@ async def index(request: Request, user: User = Depends(check_user_exists)):
 async def print_qr_codes(request: Request):
     items = []
     for item_id in request.query_params.get("items", "").split(","):
-        item = await get_item(int(item_id))
+        item = await get_item(item_id)
         if item:
             items.append(
                 {
