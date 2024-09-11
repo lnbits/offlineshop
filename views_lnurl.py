@@ -38,7 +38,7 @@ async def lnurl_response(req: Request, item_id: int) -> dict:
 
     url = parse_obj_as(
         Union[DebugUrl, OnionUrl, ClearnetUrl],  # type: ignore
-        req.url_for("offlineshop.lnurl_callback", item_id=item.id),
+        str(req.url_for("offlineshop.lnurl_callback", item_id=item.id)),
     )
 
     resp = LnurlPayResponse(
@@ -91,10 +91,9 @@ async def lnurl_callback(request: Request, item_id: int):
         return LnurlErrorResponse(reason=str(exc)).dict()
 
     if shop.method and shop.wordlist:
-
         url = parse_obj_as(
             Union[DebugUrl, OnionUrl, ClearnetUrl],  # type: ignore
-            request.url_for("offlineshop.confirmation_code", p=payment_hash),
+            str(request.url_for("offlineshop.confirmation_code", p=payment_hash)),
         )
 
         success_action = UrlAction(

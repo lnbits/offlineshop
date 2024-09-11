@@ -53,7 +53,7 @@ async def confirmation_code(p: str):
     style = "<style>* { font-size: 100px}</style>"
 
     payment_hash = p
-    payment = await get_standalone_payment(payment_hash)
+    payment = await get_standalone_payment(payment_hash, incoming=True)
     if not payment:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
@@ -72,7 +72,11 @@ async def confirmation_code(p: str):
             detail="Too much time has passed." + style,
         )
 
-    assert payment.extra
+    if not payment.extra and not payment.extra.get("item"):
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST, detail="Payment is missing extra data."
+        )
+
     item_id = payment.extra.get("item")
     assert item_id
     item = await get_item(item_id)
