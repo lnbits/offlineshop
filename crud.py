@@ -1,7 +1,7 @@
 from typing import Optional
 
 from lnbits.db import Database
-from lnbits.helpers import insert_query, update_query, urlsafe_short_hash
+from lnbits.helpers import urlsafe_short_hash
 
 from .models import CreateItem, CreateShop, Item, Shop
 from .wordlists import animals
@@ -12,38 +12,29 @@ db = Database("ext_offlineshop")
 async def create_shop(data: CreateShop) -> Shop:
     data.wordlist = data.wordlist or "\n".join(animals)
     shop = Shop(id=urlsafe_short_hash(), **data.dict())
-    await db.execute(
-        insert_query("offlineshop.shops", shop),
-        shop.dict(),
-    )
+    await db.insert("offlineshop.shops", shop)
     return shop
 
 
 async def get_shop(shop_id: str) -> Optional[Shop]:
-    row = await db.fetchone(
-        "SELECT * FROM offlineshop.shops WHERE id = :id", {"id": shop_id}
+    return await db.fetchone(
+        "SELECT * FROM offlineshop.shops WHERE id = :id",
+        {"id": shop_id},
+        Shop,
     )
-    return Shop(**row) if row else None
 
 
 async def get_or_create_shop_by_wallet(wallet: str) -> Optional[Shop]:
-    row = await db.fetchone(
+    shop = await db.fetchone(
         "SELECT * FROM offlineshop.shops WHERE wallet = :wallet",
         {"wallet": wallet},
+        Shop,
     )
-
-    if not row:
-        # create on the fly
-        return await create_shop(CreateShop(wallet=wallet))
-
-    return Shop(**row) if row else None
+    return shop or await create_shop(CreateShop(wallet=wallet))
 
 
 async def update_shop(shop: Shop) -> Shop:
-    await db.execute(
-        update_query("offlineshop.shops", shop),
-        shop.dict(),
-    )
+    await db.update("offlineshop.shops", shop)
     return shop
 
 
@@ -52,35 +43,29 @@ async def create_item(
     data: CreateItem,
 ) -> Item:
     item = Item(id=urlsafe_short_hash(), shop=shop, **data.dict())
-    await db.execute(
-        insert_query("offlineshop.items", item),
-        item.dict(),
-    )
+    await db.insert("offlineshop.items", item)
     return item
 
 
 async def update_item(item: Item) -> Item:
-    await db.execute(
-        update_query("offlineshop.items", item),
-        item.dict(),
-    )
+    await db.update("offlineshop.items", item)
     return item
 
 
 async def get_item(item_id: str) -> Optional[Item]:
-    row = await db.fetchone(
+    return await db.fetchone(
         "SELECT * FROM offlineshop.items WHERE id = :id LIMIT 1",
         {"id": item_id},
+        Item,
     )
-    return Item(**row) if row else None
 
 
 async def get_items(shop: str) -> list[Item]:
-    rows = await db.fetchall(
+    return await db.fetchall(
         "SELECT * FROM offlineshop.items WHERE shop = :shop",
         {"shop": shop},
+        Item,
     )
-    return [Item(**row) for row in rows]
 
 
 async def delete_item_from_shop(shop: str, item_id: str):
