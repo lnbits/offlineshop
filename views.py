@@ -3,6 +3,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
+
 from lnbits.core.crud import get_standalone_payment
 from lnbits.core.models import User
 from lnbits.decorators import check_user_exists
@@ -20,7 +21,7 @@ def offlineshop_renderer():
 @offlineshop_generic_router.get("/", response_class=HTMLResponse)
 async def index(request: Request, user: User = Depends(check_user_exists)):
     return offlineshop_renderer().TemplateResponse(
-        "offlineshop/index.html", {"request": request, "user": user.dict()}
+        "offlineshop/index.html", {"request": request, "user": user.json()}
     )
 
 
@@ -34,12 +35,13 @@ async def print_qr_codes(request: Request):
                 {
                     "lnurl": item.lnurl(request),
                     "name": item.name,
-                    "price": f"{item.price} {item.unit}",
+                    "price": f"{round(item.price, 2) if item.unit != 'sats' else int(item.price)} {item.unit}",
                 }
             )
 
     return offlineshop_renderer().TemplateResponse(
-        "offlineshop/print.html", {"request": request, "items": items}
+        "offlineshop/print.html",
+        {"request": request, "items": items},
     )
 
 

@@ -4,7 +4,6 @@ import json
 from collections import OrderedDict
 from typing import Optional
 
-from fastapi import Query
 from lnurl import encode as lnurl_encode
 from lnurl.types import LnurlPayMetadata
 from pydantic import BaseModel
@@ -92,10 +91,9 @@ class Item(BaseModel):
     name: str
     description: str
     image: Optional[str]
-    enabled: bool
+    enabled: Optional[bool] = True
     price: float
     unit: str
-    fiat_base_multiplier: int
 
     def lnurl(self, req: Request) -> str:
         return lnurl_encode(
@@ -123,5 +121,4 @@ class CreateItem(BaseModel):
     description: str
     price: float
     unit: str
-    fiat_base_multiplier: int = Query(100, ge=1)
     image: Optional[str] = None

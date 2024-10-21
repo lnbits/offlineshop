@@ -14,12 +14,11 @@
             >
           </div>
         </div>
-        {% raw %}
         <q-table
           dense
           flat
           selection="multiple"
-          :data="offlineshop.items"
+          :rows="offlineshop.items"
           row-key="id"
           no-data-label="No items for sale yet"
           :pagination="{rowsPerPage: 0}"
@@ -49,8 +48,12 @@
                   target="_blank"
                 ></q-btn>
               </q-td>
-              <q-td auto-width class="text-center">{{ props.row.name }}</q-td>
-              <q-td auto-width> {{ props.row.description }} </q-td>
+              <q-td
+                auto-width
+                class="text-center"
+                v-text="props.row.name"
+              ></q-td>
+              <q-td auto-width v-text="props.row.description"></q-td>
               <q-td class="text-center" auto-width>
                 <img
                   v-if="props.row.image"
@@ -58,8 +61,11 @@
                   style="height: 1.5em"
                 />
               </q-td>
-              <q-td class="text-center" auto-width>
-                {{ props.row.price }} {{ props.row.unit }}
+              <q-td
+                class="text-center"
+                auto-width
+                v-text="itemPrice(props.row.price, props.row.unit)"
+              >
               </q-td>
               <q-td auto-width>
                 <q-btn
@@ -84,7 +90,6 @@
             </q-tr>
           </template>
         </q-table>
-        {% endraw %}
       </q-card-section>
     </q-card>
 
@@ -99,7 +104,7 @@
             filled
             dense
             :options="g.user.wallets"
-            :value="selectedWallet"
+            v-model="selectedWallet"
             label="Using wallet:"
             option-label="name"
             @input="changedWallet"
@@ -168,11 +173,11 @@
           <div class="row">
             <div class="col q-mx-lg">
               <q-responsive :ratio="1">
-                <qrcode
+                <lnbits-qrcode
                   :value="`otpauth://totp/offlineshop:${selectedWallet.name}?secret=${offlineshop.otp_key}`"
                   :options="{width: 800}"
                   class="rounded-borders"
-                ></qrcode>
+                ></lnbits-qrcode>
               </q-responsive>
             </div>
             <div
@@ -235,11 +240,10 @@
         <h5 class="q-ma-none q-mb-xl" v-else>Adding a new item</h5>
 
         <q-responsive v-if="itemDialog.data.id" :ratio="1">
-          <qrcode
+          <lnbits-qrcode
             :value="'lightning:' + itemDialog.data.lnurl"
-            :options="{width: 300}"
             class="rounded-borders"
-          ></qrcode>
+          ></lnbits-qrcode>
         </q-responsive>
 
         <div v-if="itemDialog.data.id" class="row q-gutter-sm justify-center">

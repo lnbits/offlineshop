@@ -32,7 +32,7 @@ async def lnurl_response(req: Request, item_id: str) -> dict:
 
     price_msat = (
         await fiat_amount_as_satoshis(item.price, item.unit)
-        if item.unit != "sat"
+        if item.unit != "sats"
         else item.price
     ) * 1000
 
@@ -57,7 +57,7 @@ async def lnurl_callback(request: Request, item_id: str):
     if not item:
         return {"status": "ERROR", "reason": "Couldn't find item."}
 
-    if item.unit == "sat":
+    if item.unit == "sats":
         min_price = item.price * 1000
         max_price = item.price * 1000
     else:
@@ -80,7 +80,7 @@ async def lnurl_callback(request: Request, item_id: str):
     assert shop
 
     try:
-        payment_hash, payment_request = await create_invoice(
+        payment = await create_invoice(
             wallet_id=shop.wallet,
             amount=int(amount_received / 1000),
             memo=item.name,
@@ -93,7 +93,9 @@ async def lnurl_callback(request: Request, item_id: str):
     if shop.method and shop.wordlist:
         url = parse_obj_as(
             Union[DebugUrl, OnionUrl, ClearnetUrl],  # type: ignore
-            str(request.url_for("offlineshop.confirmation_code", p=payment_hash)),
+            str(
+                request.url_for("offlineshop.confirmation_code", p=payment.payment_hash)
+            ),
         )
 
         success_action = UrlAction(
@@ -102,7 +104,7 @@ async def lnurl_callback(request: Request, item_id: str):
                 "Open to get the confirmation code for your purchase."
             ),
         )
-        invoice = parse_obj_as(LightningInvoice, LightningInvoice(payment_request))
+        invoice = parse_obj_as(LightningInvoice, LightningInvoice(payment.bolt11))
         resp = LnurlPayActionResponse(
             pr=invoice,
             successAction=success_action,

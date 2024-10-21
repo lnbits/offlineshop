@@ -1,7 +1,4 @@
 /* globals Quasar, Vue, _, VueQrcode, windowMixin, LNbits, LOCALE */
-
-Vue.component(VueQrcode.name, VueQrcode)
-
 const pica = window.pica()
 
 function imgSizeFit(img, maxWidth = 1024, maxHeight = 768) {
@@ -13,11 +10,7 @@ function imgSizeFit(img, maxWidth = 1024, maxHeight = 768) {
   return {width: img.naturalWidth * ratio, height: img.naturalHeight * ratio}
 }
 
-const defaultItemData = {
-  unit: 'sat'
-}
-
-new Vue({
+window.app = Vue.createApp({
   el: '#vue',
   mixins: [windowMixin],
   data() {
@@ -33,8 +26,8 @@ new Vue({
       itemDialog: {
         show: false,
         urlImg: true,
-        data: {...defaultItemData},
-        units: ['sat']
+        data: {},
+        units: []
       }
     }
   },
@@ -46,7 +39,7 @@ new Vue({
   methods: {
     openNewDialog() {
       this.itemDialog.show = true
-      this.itemDialog.data = {...defaultItemData}
+      this.itemDialog.data = {}
     },
     openUpdateDialog(itemId) {
       this.itemDialog.show = true
@@ -109,7 +102,7 @@ new Vue({
         await LNbits.api.request(
           'PUT',
           '/offlineshop/api/v1/offlineshop/method',
-          this.selectedWallet.inkey,
+          this.selectedWallet.adminkey,
           {method: this.confirmationMethod, wordlist: this.offlineshop.wordlist}
         )
       } catch (err) {
@@ -132,8 +125,7 @@ new Vue({
         description,
         image,
         price,
-        unit,
-        fiat_base_multiplier: unit == 'sat' ? 1 : 100
+        unit
       }
 
       try {
@@ -141,14 +133,14 @@ new Vue({
           await LNbits.api.request(
             'PUT',
             '/offlineshop/api/v1/offlineshop/items/' + id,
-            this.selectedWallet.inkey,
+            this.selectedWallet.adminkey,
             data
           )
         } else {
           await LNbits.api.request(
             'POST',
             '/offlineshop/api/v1/offlineshop/items',
-            this.selectedWallet.inkey,
+            this.selectedWallet.adminkey,
             data
           )
           this.$q.notify({
@@ -174,10 +166,10 @@ new Vue({
         .request(
           'PUT',
           '/offlineshop/api/v1/offlineshop/items/' + itemId,
-          this.selectedWallet.inkey,
+          this.selectedWallet.adminkey,
           item
         )
-        .then(response => {
+        .then(() => {
           this.$q.notify({
             message: `Item ${item.enabled ? 'enabled' : 'disabled'}.`,
             timeout: 700
@@ -196,9 +188,9 @@ new Vue({
             .request(
               'DELETE',
               '/offlineshop/api/v1/offlineshop/items/' + itemId,
-              this.selectedWallet.inkey
+              this.selectedWallet.adminkey
             )
-            .then(response => {
+            .then(() => {
               this.$q.notify({
                 message: `Item deleted.`,
                 timeout: 700
@@ -212,19 +204,16 @@ new Vue({
               LNbits.utils.notifyApiError(err)
             })
         })
+    },
+    itemPrice(price, unit) {
+      return `${unit == 'sats' ? price : price.toFixed(2)} ${unit}`
     }
   },
-  created() {
+  async created() {
     this.selectedWallet = this.g.user.wallets[0]
     this.loadShop()
 
-    LNbits.api
-      .request('GET', '/offlineshop/api/v1/currencies')
-      .then(response => {
-        this.itemDialog = {...this.itemDialog, units: ['sat', ...response.data]}
-      })
-      .catch(err => {
-        LNbits.utils.notifyApiError(err)
-      })
+    this.itemDialog.units = await LNbits.api.getCurrencies()
+    console.log(this.itemDialog.units)
   }
 })

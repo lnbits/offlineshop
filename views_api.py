@@ -2,10 +2,10 @@ from http import HTTPStatus
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
+
 from lnbits.core.models import WalletTypeInfo
 from lnbits.decorators import require_admin_key, require_invoice_key
-from lnbits.utils.exchange_rates import currencies
-from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
 
 from .crud import (
     create_item,
@@ -21,11 +21,6 @@ from .models import CreateItem, CreateShop, ShopCounter
 offlineshop_api_router = APIRouter()
 
 
-@offlineshop_api_router.get("/api/v1/currencies")
-async def api_list_currencies_available():
-    return list(currencies.keys())
-
-
 @offlineshop_api_router.get("/api/v1/offlineshop")
 async def api_shop_from_wallet(
     r: Request, key_info: WalletTypeInfo = Depends(require_invoice_key)
@@ -33,6 +28,7 @@ async def api_shop_from_wallet(
     shop = await get_or_create_shop_by_wallet(key_info.wallet.id)
     assert shop
     items = await get_items(shop.id)
+
     try:
         return {
             **shop.dict(),
@@ -57,8 +53,8 @@ async def api_add_or_update_item(
 ):
     shop = await get_or_create_shop_by_wallet(key_info.wallet.id)
     assert shop
-    if data.unit != "sat":
-        data.price = data.price * 100
+    if data.unit == "sats":
+        data.price = int(data.price)
     if data.image:
         image_is_url = data.image.startswith("http")
         if not image_is_url:
