@@ -30,11 +30,13 @@ async def print_qr_codes(request: Request):
     for item_id in request.query_params.get("items", "").split(","):
         item = await get_item(item_id)
         if item:
+            amount = round(item.price, 2) if item.unit != "sats" else int(item.price)
+            price = f"{amount} {item.unit}"
             items.append(
                 {
                     "lnurl": item.lnurl(request),
                     "name": item.name,
-                    "price": f"{round(item.price, 2) if item.unit != 'sats' else int(item.price)} {item.unit}",
+                    "price": price,
                 }
             )
 
