@@ -36,6 +36,11 @@ window.app = Vue.createApp({
       return this.offlineshop.items.filter(({enabled}) => enabled)
     }
   },
+  watch: {
+    selectedWallet() {
+      this.loadShop()
+    },
+  },
   methods: {
     openNewDialog() {
       this.itemDialog.show = true
@@ -76,10 +81,6 @@ window.app = Vue.createApp({
         !this.itemDialog.data.unit ||
         this.itemDialog.data.unit.length === 0
       )
-    },
-    changedWallet(wallet) {
-      this.selectedWallet = wallet
-      this.loadShop()
     },
     loadShop() {
       LNbits.api

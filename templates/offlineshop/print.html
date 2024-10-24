@@ -17,7 +17,7 @@
 <script>
   window.app = Vue.createApp({
     el: '#vue',
-    data: function () {
+    data() {
       return {
         items: JSON.parse('{{ items | tojson | safe }}')
       }
