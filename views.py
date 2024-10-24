@@ -1,13 +1,12 @@
 import time
-from datetime import datetime
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from lnbits.core.crud import get_standalone_payment
 from lnbits.core.models import User
 from lnbits.decorators import check_user_exists
 from lnbits.helpers import template_renderer
-from starlette.responses import HTMLResponse
 
 from .crud import get_item, get_shop
 
@@ -21,7 +20,7 @@ def offlineshop_renderer():
 @offlineshop_generic_router.get("/", response_class=HTMLResponse)
 async def index(request: Request, user: User = Depends(check_user_exists)):
     return offlineshop_renderer().TemplateResponse(
-        "offlineshop/index.html", {"request": request, "user": user.dict()}
+        "offlineshop/index.html", {"request": request, "user": user.json()}
     )
 
 
@@ -29,18 +28,21 @@ async def index(request: Request, user: User = Depends(check_user_exists)):
 async def print_qr_codes(request: Request):
     items = []
     for item_id in request.query_params.get("items", "").split(","):
-        item = await get_item(int(item_id))
+        item = await get_item(item_id)
         if item:
+            amount = round(item.price, 2) if item.unit != "sats" else int(item.price)
+            price = f"{amount} {item.unit}"
             items.append(
                 {
                     "lnurl": item.lnurl(request),
                     "name": item.name,
-                    "price": f"{item.price} {item.unit}",
+                    "price": price,
                 }
             )
 
     return offlineshop_renderer().TemplateResponse(
-        "offlineshop/print.html", {"request": request, "items": items}
+        "offlineshop/print.html",
+        {"request": request, "items": items},
     )
 
 
@@ -66,17 +68,18 @@ async def confirmation_code(p: str):
             + style,
         )
 
-    if payment.time + 60 * 15 < time.time():
+    if payment.time.timestamp() + 60 * 15 < time.time():
         raise HTTPException(
             status_code=HTTPStatus.REQUEST_TIMEOUT,
             detail="Too much time has passed." + style,
         )
 
-    if not payment.extra and not payment.extra.get("item"):
+    if not payment.extra or not payment.extra.get("item"):
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST, detail="Payment is missing extra data."
         )
 
+    assert payment.extra
     item_id = payment.extra.get("item")
     assert item_id
     item = await get_item(item_id)
@@ -84,12 +87,10 @@ async def confirmation_code(p: str):
     shop = await get_shop(item.shop)
     assert shop
 
-    return (
-        f"""
-[{shop.get_code(payment_hash)}]<br>
-{item.name}<br>
-{item.price} {item.unit}<br>
-{datetime.fromtimestamp(payment.time).strftime('%Y-%m-%d %H:%M:%S')}
-    """
-        + style
-    )
+    return f"""
+        [{shop.get_code(payment_hash)}]<br>
+        {item.name}<br>
+        {item.price} {item.unit}<br>
+        {payment.time.strftime('%Y-%m-%d %H:%M:%S')}
+        {style}
+        """
