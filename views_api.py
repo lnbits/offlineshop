@@ -2,10 +2,9 @@ from http import HTTPStatus
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
-
 from lnbits.core.models import WalletTypeInfo
 from lnbits.decorators import require_admin_key, require_invoice_key
+from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
 
 from .crud import (
     create_item,
