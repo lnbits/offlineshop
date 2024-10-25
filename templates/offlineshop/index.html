@@ -144,7 +144,6 @@
             <div class="col q-mx-lg">
               <q-input
                 v-model="offlineshop.wordlist"
-                @input="wordlistTainted = true"
                 dense
                 filled
                 autogrow
@@ -157,7 +156,6 @@
                 unelevated
                 color="primary"
                 type="submit"
-                :disabled="!wordlistTainted"
               >
                 Update Wordlist
               </q-btn>

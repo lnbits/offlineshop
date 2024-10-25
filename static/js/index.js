@@ -17,7 +17,6 @@ window.app = Vue.createApp({
     return {
       selectedWallet: null,
       confirmationMethod: 'wordlist',
-      wordlistTainted: false,
       offlineshop: {
         method: null,
         wordlist: [],
@@ -92,7 +91,6 @@ window.app = Vue.createApp({
         .then(response => {
           this.offlineshop = response.data
           this.confirmationMethod = response.data.method
-          this.wordlistTainted = false
         })
         .catch(err => {
           LNbits.utils.notifyApiError(err)
@@ -104,7 +102,7 @@ window.app = Vue.createApp({
           'PUT',
           '/offlineshop/api/v1/offlineshop/method',
           this.selectedWallet.adminkey,
-          {method: this.confirmationMethod, wordlist: this.offlineshop.wordlist}
+          {wallet: this.selectedWallet.id, method: this.confirmationMethod, wordlist: this.offlineshop.wordlist}
         )
       } catch (err) {
         LNbits.utils.notifyApiError(err)
