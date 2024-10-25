@@ -49,7 +49,7 @@ window.app = Vue.createApp({
     openUpdateDialog(itemId) {
       this.itemDialog.show = true
       let item = this.offlineshop.items.find(item => item.id === itemId)
-      if (item.image.startsWith('data:')) {
+      if (item.image !== null && item.image.startsWith('data:')) {
         this.itemDialog.urlImg = false
       }
       this.itemDialog.data = item
