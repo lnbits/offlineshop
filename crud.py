@@ -1,119 +1,77 @@
-from typing import List, Optional
+from typing import Optional
 
-from lnbits.db import SQLITE, Database
+from lnbits.db import Database
+from lnbits.helpers import urlsafe_short_hash
 
-from .models import Item, Shop
+from .models import CreateItem, CreateShop, Item, Shop
 from .wordlists import animals
 
 db = Database("ext_offlineshop")
 
 
-async def create_shop(*, wallet_id: str) -> int:
-    returning = "" if db.type == SQLITE else "RETURNING ID"
-    method = db.execute if db.type == SQLITE else db.fetchone
+async def create_shop(data: CreateShop) -> Shop:
+    data.wordlist = data.wordlist or "\n".join(animals)
+    shop = Shop(id=urlsafe_short_hash(), **data.dict())
+    await db.insert("offlineshop.shops", shop)
+    return shop
 
-    result = await method(
-        f"""
-        INSERT INTO offlineshop.shops (wallet, wordlist, method)
-        VALUES (?, ?, 'wordlist')
-        {returning}
-        """,
-        (wallet_id, "\n".join(animals)),
+
+async def get_shop(shop_id: str) -> Optional[Shop]:
+    return await db.fetchone(
+        "SELECT * FROM offlineshop.shops WHERE id = :id",
+        {"id": shop_id},
+        Shop,
     )
-    if db.type == SQLITE:
-        return result._result_proxy.lastrowid
-    else:
-        return result[0]  # type: ignore
-
-
-async def get_shop(shop_id: int) -> Optional[Shop]:
-    row = await db.fetchone("SELECT * FROM offlineshop.shops WHERE id = ?", (shop_id,))
-    return Shop(**row) if row else None
 
 
 async def get_or_create_shop_by_wallet(wallet: str) -> Optional[Shop]:
-    row = await db.fetchone(
-        "SELECT * FROM offlineshop.shops WHERE wallet = ?", (wallet,)
+    shop = await db.fetchone(
+        "SELECT * FROM offlineshop.shops WHERE wallet = :wallet",
+        {"wallet": wallet},
+        Shop,
+    )
+    return shop or await create_shop(CreateShop(wallet=wallet))
+
+
+async def update_shop(shop: Shop) -> Shop:
+    await db.update("offlineshop.shops", shop)
+    return shop
+
+
+async def create_item(
+    shop: str,
+    data: CreateItem,
+) -> Item:
+    item = Item(id=urlsafe_short_hash(), shop=shop, **data.dict())
+    await db.insert("offlineshop.items", item)
+    return item
+
+
+async def update_item(item: Item) -> Item:
+    await db.update("offlineshop.items", item)
+    return item
+
+
+async def get_item(item_id: str) -> Optional[Item]:
+    return await db.fetchone(
+        "SELECT * FROM offlineshop.items WHERE id = :id LIMIT 1",
+        {"id": item_id},
+        Item,
     )
 
-    if not row:
-        # create on the fly
-        ls_id = await create_shop(wallet_id=wallet)
-        return await get_shop(ls_id)
 
-    return Shop(**row) if row else None
-
-
-async def set_method(shop: int, method: str, wordlist: str = "") -> Optional[Shop]:
-    await db.execute(
-        "UPDATE offlineshop.shops SET method = ?, wordlist = ? WHERE id = ?",
-        (method, wordlist, shop),
+async def get_items(shop: str) -> list[Item]:
+    return await db.fetchall(
+        "SELECT * FROM offlineshop.items WHERE shop = :shop",
+        {"shop": shop},
+        Item,
     )
-    return await get_shop(shop)
 
 
-async def add_item(
-    shop: int,
-    name: str,
-    description: str,
-    image: Optional[str],
-    price: int,
-    unit: str,
-    fiat_base_multiplier: int,
-) -> int:
-    result = await db.execute(
-        """
-        INSERT INTO offlineshop.items
-        (shop, name, description, image, price, unit, fiat_base_multiplier)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (shop, name, description, image, price, unit, fiat_base_multiplier),
-    )
-    return result._result_proxy.lastrowid
-
-
-async def update_item(
-    shop: int,
-    item_id: int,
-    name: str,
-    description: str,
-    image: Optional[str],
-    price: int,
-    unit: str,
-    fiat_base_multiplier: int,
-) -> int:
+async def delete_item_from_shop(shop: str, item_id: str):
     await db.execute(
         """
-        UPDATE offlineshop.items SET
-          name = ?,
-          description = ?,
-          image = ?,
-          price = ?,
-          unit = ?,
-          fiat_base_multiplier = ?
-        WHERE shop = ? AND id = ?
+        DELETE FROM offlineshop.items WHERE shop = :shop AND id = :id
         """,
-        (name, description, image, price, unit, fiat_base_multiplier, shop, item_id),
-    )
-    return item_id
-
-
-async def get_item(item_id: int) -> Optional[Item]:
-    row = await db.fetchone(
-        "SELECT * FROM offlineshop.items WHERE id = ?  LIMIT 1", (item_id,)
-    )
-    return Item.from_row(row) if row else None
-
-
-async def get_items(shop: int) -> List[Item]:
-    rows = await db.fetchall("SELECT * FROM offlineshop.items WHERE shop = ?", (shop,))
-    return [Item.from_row(row) for row in rows]
-
-
-async def delete_item_from_shop(shop: int, item_id: int):
-    await db.execute(
-        """
-        DELETE FROM offlineshop.items WHERE shop = ? AND id = ?
-        """,
-        (shop, item_id),
+        {"shop": shop, "id": item_id},
     )
