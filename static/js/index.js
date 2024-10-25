@@ -102,7 +102,11 @@ window.app = Vue.createApp({
           'PUT',
           '/offlineshop/api/v1/offlineshop/method',
           this.selectedWallet.adminkey,
-          {wallet: this.selectedWallet.id, method: this.confirmationMethod, wordlist: this.offlineshop.wordlist}
+          {
+            wallet: this.selectedWallet.id,
+            method: this.confirmationMethod,
+            wordlist: this.offlineshop.wordlist
+          }
         )
       } catch (err) {
         LNbits.utils.notifyApiError(err)

@@ -142,21 +142,12 @@
         >
           <div class="row">
             <div class="col q-mx-lg">
-              <q-input
-                v-model="offlineshop.wordlist"
-                dense
-                filled
-                autogrow
-              />
+              <q-input v-model="offlineshop.wordlist" dense filled autogrow />
             </div>
             <div
               class="col q-mx-lg items-align flex items-center justify-center"
             >
-              <q-btn
-                unelevated
-                color="primary"
-                type="submit"
-              >
+              <q-btn unelevated color="primary" type="submit">
                 Update Wordlist
               </q-btn>
               <q-btn @click="loadShop" flat color="grey" class="q-ml-auto"
