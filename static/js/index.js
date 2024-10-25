@@ -39,7 +39,7 @@ window.app = Vue.createApp({
   watch: {
     selectedWallet() {
       this.loadShop()
-    },
+    }
   },
   methods: {
     openNewDialog() {
@@ -157,7 +157,7 @@ window.app = Vue.createApp({
       this.loadShop()
       this.itemDialog.show = false
       this.itemDialog.urlImg = true
-      this.itemDialog.data = {...defaultItemData}
+      this.itemDialog.data = {}
     },
     toggleItem(itemId) {
       let item = this.offlineshop.items.find(item => item.id === itemId)
