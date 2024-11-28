@@ -93,4 +93,4 @@ async def m003_id_as_text(db):
         "UPDATE offlineshop.items SET price = price / 100 WHERE unit != 'sats';"
     )
     await db.execute("DROP TABLE offlineshop.old_item;")
-    await db.execute("DROP TABLE offlineshop.old_shop CASCADE;")
+    await db.execute("DROP TABLE offlineshop.old_shop;")
