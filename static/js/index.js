@@ -217,6 +217,5 @@ window.app = Vue.createApp({
     this.loadShop()
 
     this.itemDialog.units = await LNbits.api.getCurrencies()
-    console.log(this.itemDialog.units)
   }
 })
