@@ -106,15 +106,20 @@ class Item(BaseModel):
             str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
         )
         return values
-
-    async def lnurlpay_metadata(self) -> LnurlPayMetadata:
-        metadata = [["text/plain", self.description]]
+    
+    @property
+    def lnurlpay_metadata(self) -> LnurlPayMetadata:
+        metadata = [("text/plain", self.description)]
 
         if self.image:
-            metadata.append(self.image.split(":")[1].split(","))
+            try:
+                image_tuple = tuple(self.image.split(":")[1].split(",")[:2])
+                if len(image_tuple) == 2:
+                    metadata.append(image_tuple)
+            except IndexError:
+                pass
 
         return LnurlPayMetadata(json.dumps(metadata))
-
 
 class CreateItem(BaseModel):
     name: str

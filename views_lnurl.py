@@ -45,7 +45,7 @@ async def lnurl_response(req: Request, item_id: str) -> dict:
         callback=url,
         minSendable=MilliSatoshi(price_msat),
         maxSendable=MilliSatoshi(price_msat),
-        metadata=await item.lnurlpay_metadata(),
+        metadata=item.lnurlpay_metadata,
     )
 
     return resp.dict()
@@ -84,7 +84,7 @@ async def lnurl_callback(request: Request, item_id: str):
             wallet_id=shop.wallet,
             amount=int(amount_received / 1000),
             memo=item.name,
-            unhashed_description=(await item.lnurlpay_metadata()).encode(),
+            unhashed_description=item.lnurlpay_metadata.encode(),
             extra={"tag": "offlineshop", "item": item.id},
         )
     except Exception as exc:
