@@ -10,6 +10,7 @@ from lnurl import (
     Max144Str,
     MilliSatoshi,
     UrlAction,
+    LnurlPaySuccessActionTag
 )
 from pydantic import parse_obj_as
 from starlette.requests import Request
@@ -46,6 +47,7 @@ async def lnurl_response(
         minSendable=MilliSatoshi(price_msat),
         maxSendable=MilliSatoshi(price_msat),
         metadata=item.lnurlpay_metadata,
+
     )
 
 
@@ -100,6 +102,7 @@ async def lnurl_callback(
         )
 
         success_action = UrlAction(
+            tag=LnurlPaySuccessActionTag.url,
             url=url,
             description=Max144Str(
                 "Open to get the confirmation code for your purchase."
