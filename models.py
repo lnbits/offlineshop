@@ -106,7 +106,7 @@ class Item(BaseModel):
             str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
         )
         return values
-    
+
     @property
     def lnurlpay_metadata(self) -> LnurlPayMetadata:
         metadata = [("text/plain", self.description)]
@@ -120,6 +120,7 @@ class Item(BaseModel):
                 pass
 
         return LnurlPayMetadata(json.dumps(metadata))
+
 
 class CreateItem(BaseModel):
     name: str
