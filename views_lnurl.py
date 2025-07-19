@@ -1,17 +1,16 @@
-from typing import Union
-
 from fastapi import APIRouter
 from lnbits.core.services import create_invoice
 from lnbits.utils.exchange_rates import fiat_amount_as_satoshis
-from lnurl import LnurlErrorResponse, LnurlPayActionResponse, LnurlPayResponse
-from lnurl.models import UrlAction
-from lnurl.types import (
-    ClearnetUrl,
-    DebugUrl,
+from lnurl import (
+    CallbackUrl,
     LightningInvoice,
+    LnurlErrorResponse,
+    LnurlPayActionResponse,
+    LnurlPayResponse,
+    LnurlPaySuccessActionTag,
     Max144Str,
     MilliSatoshi,
-    OnionUrl,
+    UrlAction,
 )
 from pydantic import parse_obj_as
 from starlette.requests import Request
@@ -22,13 +21,15 @@ offlineshop_lnurl_router = APIRouter()
 
 
 @offlineshop_lnurl_router.get("/lnurl/{item_id}", name="offlineshop.lnurl_response")
-async def lnurl_response(req: Request, item_id: str) -> dict:
+async def lnurl_response(
+    req: Request, item_id: str
+) -> LnurlPayResponse | LnurlErrorResponse:
     item = await get_item(item_id)
     if not item:
-        return {"status": "ERROR", "reason": "Item not found."}
+        return LnurlErrorResponse(reason="Item not found.")
 
     if not item.enabled:
-        return {"status": "ERROR", "reason": "Item disabled."}
+        return LnurlErrorResponse(reason="Item disabled.")
 
     price_msat = (
         await fiat_amount_as_satoshis(item.price, item.unit)
@@ -37,25 +38,31 @@ async def lnurl_response(req: Request, item_id: str) -> dict:
     ) * 1000
 
     url = parse_obj_as(
-        Union[DebugUrl, OnionUrl, ClearnetUrl],  # type: ignore
+        CallbackUrl,
         str(req.url_for("offlineshop.lnurl_callback", item_id=item.id)),
     )
 
-    resp = LnurlPayResponse(
+    return LnurlPayResponse(
         callback=url,
         minSendable=MilliSatoshi(price_msat),
         maxSendable=MilliSatoshi(price_msat),
         metadata=item.lnurlpay_metadata,
+        # TODO remove after lnurl lib update
+        commentAllowed=None,
+        payerData=None,
+        allowsNostr=None,
+        nostrPubkey=None,
     )
-
-    return resp.dict()
 
 
 @offlineshop_lnurl_router.get("/lnurl/cb/{item_id}", name="offlineshop.lnurl_callback")
-async def lnurl_callback(request: Request, item_id: str):
+async def lnurl_callback(
+    request: Request, item_id: str
+) -> LnurlPayActionResponse | LnurlErrorResponse:
+
     item = await get_item(item_id)
     if not item:
-        return {"status": "ERROR", "reason": "Couldn't find item."}
+        return LnurlErrorResponse(reason="Item not found.")
 
     if item.unit == "sats":
         min_price = item.price * 1000
@@ -70,11 +77,11 @@ async def lnurl_callback(request: Request, item_id: str):
     if amount_received < min_price:
         return LnurlErrorResponse(
             reason=f"Amount {amount_received} is smaller than minimum {min_price}."
-        ).dict()
+        )
     elif amount_received > max_price:
         return LnurlErrorResponse(
             reason=f"Amount {amount_received} is greater than maximum {max_price}."
-        ).dict()
+        )
 
     shop = await get_shop(item.shop)
     assert shop
@@ -88,27 +95,28 @@ async def lnurl_callback(request: Request, item_id: str):
             extra={"tag": "offlineshop", "item": item.id},
         )
     except Exception as exc:
-        return LnurlErrorResponse(reason=str(exc)).dict()
+        return LnurlErrorResponse(reason=str(exc))
 
     if shop.method and shop.wordlist:
         url = parse_obj_as(
-            Union[DebugUrl, OnionUrl, ClearnetUrl],  # type: ignore
+            CallbackUrl,
             str(
                 request.url_for("offlineshop.confirmation_code", p=payment.payment_hash)
             ),
         )
 
         success_action = UrlAction(
+            tag=LnurlPaySuccessActionTag.url,
             url=url,
             description=Max144Str(
                 "Open to get the confirmation code for your purchase."
             ),
         )
         invoice = parse_obj_as(LightningInvoice, LightningInvoice(payment.bolt11))
-        resp = LnurlPayActionResponse(
+
+        return LnurlPayActionResponse(
             pr=invoice,
             successAction=success_action,
-            routes=[],
         )
 
-        return resp.dict()
+    return LnurlErrorResponse(reason="Shop does not support confirmation codes.")
