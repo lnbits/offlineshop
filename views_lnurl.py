@@ -7,10 +7,10 @@ from lnurl import (
     LnurlErrorResponse,
     LnurlPayActionResponse,
     LnurlPayResponse,
+    LnurlPaySuccessActionTag,
     Max144Str,
     MilliSatoshi,
     UrlAction,
-    LnurlPaySuccessActionTag
 )
 from pydantic import parse_obj_as
 from starlette.requests import Request
@@ -47,7 +47,11 @@ async def lnurl_response(
         minSendable=MilliSatoshi(price_msat),
         maxSendable=MilliSatoshi(price_msat),
         metadata=item.lnurlpay_metadata,
-
+        # TODO remove after lnurl lib update
+        commentAllowed=None,
+        payerData=None,
+        allowsNostr=None,
+        nostrPubkey=None,
     )
 
 
@@ -115,6 +119,4 @@ async def lnurl_callback(
             successAction=success_action,
         )
 
-    return LnurlErrorResponse(
-        reason="Shop does not support confirmation codes."
-    )
+    return LnurlErrorResponse(reason="Shop does not support confirmation codes.")
