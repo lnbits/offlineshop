@@ -1,9 +1,10 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
+
 from lnbits.core.models import WalletTypeInfo
 from lnbits.decorators import require_admin_key, require_invoice_key
-from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl
 
 from .crud import (
     create_item,
@@ -30,7 +31,7 @@ async def api_shop_from_wallet(
     try:
         return {
             **shop.dict(),
-            **{"otp_key": shop.otp_key, "items": [item.values() for item in items]},
+            **{"otp_key": shop.otp_key, "items": [item.values(r) for item in items]},
         }
     except LnurlInvalidUrl as exc:
         raise HTTPException(

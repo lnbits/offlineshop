@@ -3,6 +3,7 @@ import hashlib
 import json
 from collections import OrderedDict
 
+from fastapi import Request
 from lnurl.types import LnurlPayMetadata
 from pydantic import BaseModel
 
@@ -92,8 +93,9 @@ class Item(BaseModel):
     price: float
     unit: str
 
-    def values(self):
+    def values(self, req: Request):
         values = self.dict()
+        values["url"] = str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
         return values
 
     @property

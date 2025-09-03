@@ -91,10 +91,17 @@ window.app = Vue.createApp({
         .then(response => {
           this.offlineshop = response.data
           this.confirmationMethod = response.data.method
+          console.log(response.data)
         })
         .catch(err => {
           LNbits.utils.notifyApiError(err)
         })
+    },
+    setBech32() {
+      const url = this.itemDialog.data.url
+      const bytes = new TextEncoder().encode(url)
+      const bech32 = NostrTools.nip19.encodeBytes('lnurl', bytes)
+      return `lightning:${bech32.toUpperCase()}`
     },
     async setMethod() {
       try {
