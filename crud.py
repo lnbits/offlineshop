@@ -1,4 +1,3 @@
-from typing import Optional
 
 from lnbits.db import Database
 from lnbits.helpers import urlsafe_short_hash
@@ -16,7 +15,7 @@ async def create_shop(data: CreateShop) -> Shop:
     return shop
 
 
-async def get_shop(shop_id: str) -> Optional[Shop]:
+async def get_shop(shop_id: str) -> Shop | None:
     return await db.fetchone(
         "SELECT * FROM offlineshop.shops WHERE id = :id",
         {"id": shop_id},
@@ -24,7 +23,7 @@ async def get_shop(shop_id: str) -> Optional[Shop]:
     )
 
 
-async def get_or_create_shop_by_wallet(wallet: str) -> Optional[Shop]:
+async def get_or_create_shop_by_wallet(wallet: str) -> Shop | None:
     shop = await db.fetchone(
         "SELECT * FROM offlineshop.shops WHERE wallet = :wallet",
         {"wallet": wallet},
@@ -52,7 +51,7 @@ async def update_item(item: Item) -> Item:
     return item
 
 
-async def get_item(item_id: str) -> Optional[Item]:
+async def get_item(item_id: str) -> Item | None:
     return await db.fetchone(
         "SELECT * FROM offlineshop.items WHERE id = :id LIMIT 1",
         {"id": item_id},

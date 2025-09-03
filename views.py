@@ -32,9 +32,10 @@ async def print_qr_codes(request: Request):
         if item:
             amount = round(item.price, 2) if item.unit != "sats" else int(item.price)
             price = f"{amount} {item.unit}"
+            url = request.url_for("offlineshop.lnurl_response", item_id=item.id)
             items.append(
                 {
-                    "lnurl": item.lnurl(request),
+                    "url": str(url),
                     "name": item.name,
                     "price": price,
                 }
@@ -91,6 +92,6 @@ async def confirmation_code(p: str):
         [{shop.get_code(payment_hash)}]<br>
         {item.name}<br>
         {item.price} {item.unit}<br>
-        {payment.time.strftime('%Y-%m-%d %H:%M:%S')}
+        {payment.time.strftime("%Y-%m-%d %H:%M:%S")}
         {style}
         """

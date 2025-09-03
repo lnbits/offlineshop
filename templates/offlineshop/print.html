@@ -5,8 +5,8 @@
       <span v-text="item.name"></span>
     </div>
     <lnbits-qrcode
-      :value="'lightning:' + item.lnurl"
-      :options="{margin: 0, width: 250}"
+      :value="setBech32(item.url)"
+      :show-buttons="false"
     ></lnbits-qrcode>
     <div class="text-center q-ma-none q-mt-sm">
       <span v-text="item.price"></span>
@@ -24,6 +24,13 @@
     },
     created() {
       window.print()
+    },
+    methods: {
+      setBech32(url) {
+        const bytes = new TextEncoder().encode(url)
+        const bech32 = NostrTools.nip19.encodeBytes('lnurl', bytes)
+        return `lightning:${bech32.toUpperCase()}`
+      }
     }
   })
 </script>
