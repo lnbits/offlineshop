@@ -17,4 +17,4 @@ offlineshop_ext.include_router(offlineshop_generic_router)
 offlineshop_ext.include_router(offlineshop_api_router)
 offlineshop_ext.include_router(offlineshop_lnurl_router)
 
-__all__ = ["offlineshop_ext", "offlineshop_static_files", "db"]
+__all__ = ["db", "offlineshop_ext", "offlineshop_static_files"]
