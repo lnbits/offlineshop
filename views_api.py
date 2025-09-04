@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from lnbits.core.models import WalletTypeInfo
@@ -48,7 +47,7 @@ async def api_shop_from_wallet(
 async def api_add_or_update_item(
     data: CreateItem,
     key_info: WalletTypeInfo = Depends(require_admin_key),
-    item_id: Optional[str] = None,
+    item_id: str | None = None,
 ):
     shop = await get_or_create_shop_by_wallet(key_info.wallet.id)
     assert shop

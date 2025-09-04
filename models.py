@@ -2,12 +2,10 @@ import base64
 import hashlib
 import json
 from collections import OrderedDict
-from typing import Optional
 
-from lnurl import encode as lnurl_encode
+from fastapi import Request
 from lnurl.types import LnurlPayMetadata
 from pydantic import BaseModel
-from starlette.requests import Request
 
 from .helpers import totp
 
@@ -58,8 +56,8 @@ class ShopCounter:
 
 class CreateShop(BaseModel):
     wallet: str
-    method: Optional[str] = "wordlist"
-    wordlist: Optional[str] = None
+    method: str | None = "wordlist"
+    wordlist: str | None = None
 
 
 class Shop(BaseModel):
@@ -90,21 +88,14 @@ class Item(BaseModel):
     id: str
     name: str
     description: str
-    image: Optional[str]
-    enabled: Optional[bool] = True
+    image: str | None = None
+    enabled: bool | None = True
     price: float
     unit: str
 
-    def lnurl(self, req: Request) -> str:
-        return lnurl_encode(
-            str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
-        )
-
     def values(self, req: Request):
         values = self.dict()
-        values["lnurl"] = lnurl_encode(
-            str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
-        )
+        values["url"] = str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
         return values
 
     @property
@@ -127,4 +118,4 @@ class CreateItem(BaseModel):
     description: str
     price: float
     unit: str
-    image: Optional[str] = None
+    image: str | None = None

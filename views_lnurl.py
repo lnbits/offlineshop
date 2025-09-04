@@ -47,11 +47,6 @@ async def lnurl_response(
         minSendable=MilliSatoshi(price_msat),
         maxSendable=MilliSatoshi(price_msat),
         metadata=item.lnurlpay_metadata,
-        # TODO remove after lnurl lib update
-        commentAllowed=None,
-        payerData=None,
-        allowsNostr=None,
-        nostrPubkey=None,
     )
 
 

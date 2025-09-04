@@ -222,27 +222,15 @@
       <q-card-section>
         <h5
           class="q-ma-none"
-          v-if="itemDialog.data.id"
-          v-text="itemDialog.data.name"
+          v-text="itemDialog.data.id ? itemDialog.data.name : 'Adding a new item'"
         ></h5>
-        <h5 class="q-ma-none q-mb-xl" v-else>Adding a new item</h5>
-
-        <q-responsive v-if="itemDialog.data.id" :ratio="1">
-          <lnbits-qrcode
-            :value="'lightning:' + itemDialog.data.lnurl"
-            class="rounded-borders"
-          ></lnbits-qrcode>
-        </q-responsive>
-
-        <div v-if="itemDialog.data.id" class="row q-gutter-sm justify-center">
-          <q-btn
-            outline
-            color="grey"
-            @click="copyText(itemDialog.data.lnurl, 'LNURL copied to clipboard!')"
-            class="q-mb-lg"
-            >Copy LNURL</q-btn
-          >
-        </div>
+        <lnbits-qrcode
+          v-if="itemDialog.data.id"
+          :value="setBech32()"
+          class="q-mb-md"
+        ></lnbits-qrcode>
+      </q-card-section>
+      <q-card-section>
         <q-form @submit="sendItem" class="q-gutter-md">
           <q-input
             filled
