@@ -1,8 +1,11 @@
 {
-  "name": "OfflineShop",
-  "short_description": "Receive payments for products offline!",
-  "tile": "/offlineshop/static/image/offlineshop.png",
+  "id": "offlineshop",
   "version": "1.1.1",
+  "name": "OfflineShop",
+  "repo": "https://github.com/lnbits/offlineshop",
+  "short_description": "Receive payments for products offline!",
+  "description": "",
+  "tile": "/offlineshop/static/image/offlineshop.png",
   "min_lnbits_version": "1.3.0",
   "contributors": [
     {
@@ -13,7 +16,7 @@
   ],
   "images": [
     {
-      "uri": "https://raw.githubusercontent.com/lnbits/offlineshop/main/static/image/1.png",
+      "uri": "https://raw.githubusercontent.com/lnbits/offlineshop/main/static/image/offlineshop_thumbnail.png",
       "link": "https://www.youtube.com/embed/_XAvM_LNsoo?si=CaUKtvNwcbnJtJyo"
     },
     {
@@ -28,5 +31,9 @@
   ],
   "description_md": "https://raw.githubusercontent.com/lnbits/offlineshop/main/description.md",
   "terms_and_conditions_md": "https://raw.githubusercontent.com/lnbits/offlineshop/main/toc.md",
-  "license": "MIT"
+  "license": "MIT",
+  "paid_features": "",
+  "tags": ["Merchant", "Point of Sale"],
+  "donate": "",
+  "hidden": false
 }
