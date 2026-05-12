@@ -1,0 +1,14 @@
+[
+  {
+    "path": "/offlineshop/",
+    "name": "PageOfflineshop",
+    "template": "/offlineshop/static/index.vue",
+    "component": "/offlineshop/static/js/index.js"
+  },
+  {
+    "path": "/offlineshop/print",
+    "name": "PageOfflineshopPrint",
+    "template": "/offlineshop/static/print.vue",
+    "component": "/offlineshop/static/print.js"
+  }
+]

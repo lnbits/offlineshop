@@ -42,6 +42,28 @@ async def api_shop_from_wallet(
         ) from exc
 
 
+@offlineshop_api_router.get("/api/v1/offlineshop/print")
+async def api_print_qr_codes(request: Request):
+    items = []
+    item_ids = dict.fromkeys(request.query_params.get("items", "").split(","))
+    for item_id in list(item_ids)[:100]:
+        if not item_id:
+            continue
+        item = await get_item(item_id)
+        if item and item.enabled:
+            amount = round(item.price, 2) if item.unit != "sats" else int(item.price)
+            price = f"{amount} {item.unit}"
+            url = request.url_for("offlineshop.lnurl_response", item_id=item.id)
+            items.append(
+                {
+                    "url": str(url),
+                    "name": item.name,
+                    "price": price,
+                }
+            )
+    return items
+
+
 @offlineshop_api_router.post("/api/v1/offlineshop/items")
 @offlineshop_api_router.put("/api/v1/offlineshop/items/{item_id}")
 async def api_add_or_update_item(

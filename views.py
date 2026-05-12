@@ -1,50 +1,24 @@
 import time
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from lnbits.core.crud import get_standalone_payment
-from lnbits.core.models import User
+from lnbits.core.views.generic import index, index_public
 from lnbits.decorators import check_user_exists
-from lnbits.helpers import template_renderer
 
 from .crud import get_item, get_shop
 
 offlineshop_generic_router = APIRouter()
 
 
-def offlineshop_renderer():
-    return template_renderer(["offlineshop/templates"])
+offlineshop_generic_router.add_api_route(
+    "/", methods=["GET"], endpoint=index, dependencies=[Depends(check_user_exists)]
+)
 
-
-@offlineshop_generic_router.get("/", response_class=HTMLResponse)
-async def index(request: Request, user: User = Depends(check_user_exists)):
-    return offlineshop_renderer().TemplateResponse(
-        "offlineshop/index.html", {"request": request, "user": user.json()}
-    )
-
-
-@offlineshop_generic_router.get("/print", response_class=HTMLResponse)
-async def print_qr_codes(request: Request):
-    items = []
-    for item_id in request.query_params.get("items", "").split(","):
-        item = await get_item(item_id)
-        if item:
-            amount = round(item.price, 2) if item.unit != "sats" else int(item.price)
-            price = f"{amount} {item.unit}"
-            url = request.url_for("offlineshop.lnurl_response", item_id=item.id)
-            items.append(
-                {
-                    "url": str(url),
-                    "name": item.name,
-                    "price": price,
-                }
-            )
-
-    return offlineshop_renderer().TemplateResponse(
-        "offlineshop/print.html",
-        {"request": request, "items": items},
-    )
+offlineshop_generic_router.add_api_route(
+    "/print", methods=["GET"], endpoint=index_public
+)
 
 
 @offlineshop_generic_router.get(

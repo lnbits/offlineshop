@@ -1,5 +1,5 @@
-/* globals Quasar, Vue, _, VueQrcode, windowMixin, LNbits, LOCALE */
-const pica = window.pica()
+/* globals window, URL, Image, TextEncoder, NostrTools, LNbits */
+let pica = null
 
 function imgSizeFit(img, maxWidth = 1024, maxHeight = 768) {
   let ratio = Math.min(
@@ -10,11 +10,12 @@ function imgSizeFit(img, maxWidth = 1024, maxHeight = 768) {
   return {width: img.naturalWidth * ratio, height: img.naturalHeight * ratio}
 }
 
-window.app = Vue.createApp({
-  el: '#vue',
-  mixins: [windowMixin],
+window.PageOfflineshop = {
+  template: '#page-offlineshop',
   data() {
     return {
+      siteTitle: window.g?.settings?.siteTitle || 'LNbits',
+      baseUrl: window.location.origin + '/',
       selectedWallet: null,
       confirmationMethod: 'wordlist',
       offlineshop: {
@@ -26,7 +27,7 @@ window.app = Vue.createApp({
         show: false,
         urlImg: true,
         data: {},
-        units: []
+        units: window.g.allowedCurrencies || window.g.currencies || []
       }
     }
   },
@@ -62,7 +63,7 @@ window.app = Vue.createApp({
         let canvas = document.createElement('canvas')
         canvas.setAttribute('width', fit.width)
         canvas.setAttribute('height', fit.height)
-        output = await pica.resize(image, canvas)
+        const output = await pica.resize(image, canvas)
         this.itemDialog.data.image = output.toDataURL('image/jpeg', 0.4)
         this.itemDialog = {...this.itemDialog}
       }
@@ -220,9 +221,13 @@ window.app = Vue.createApp({
     }
   },
   async created() {
-    this.selectedWallet = this.g.user.wallets[0]
+    if (!pica) {
+      await LNbits.utils.loadScript(
+        'https://cdn.jsdelivr.net/npm/pica@6.1.1/dist/pica.min.js'
+      )
+      pica = window.pica()
+    }
+    this.selectedWallet = window.g.user.wallets[0]
     this.loadShop()
-
-    this.itemDialog.units = await LNbits.api.getCurrencies()
   }
-})
+}
