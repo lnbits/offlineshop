@@ -94,7 +94,7 @@ class Item(BaseModel):
     unit: str
 
     def values(self, req: Request):
-        values = self.dict()
+        values = self.model_dump()
         values["url"] = str(req.url_for("offlineshop.lnurl_response", item_id=self.id))
         return values
 

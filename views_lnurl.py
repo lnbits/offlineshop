@@ -8,11 +8,10 @@ from lnurl import (
     LnurlPayActionResponse,
     LnurlPayResponse,
     LnurlPaySuccessActionTag,
-    Max144Str,
     MilliSatoshi,
     UrlAction,
 )
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 from starlette.requests import Request
 
 from .crud import get_item, get_shop
@@ -37,9 +36,8 @@ async def lnurl_response(
         else item.price
     ) * 1000
 
-    url = parse_obj_as(
-        CallbackUrl,
-        str(req.url_for("offlineshop.lnurl_callback", item_id=item.id)),
+    url = TypeAdapter(CallbackUrl).validate_python(
+        str(req.url_for("offlineshop.lnurl_callback", item_id=item.id))
     )
 
     return LnurlPayResponse(
@@ -93,21 +91,20 @@ async def lnurl_callback(
         return LnurlErrorResponse(reason=str(exc))
 
     if shop.method and shop.wordlist:
-        url = parse_obj_as(
-            CallbackUrl,
+        url = TypeAdapter(CallbackUrl).validate_python(
             str(
                 request.url_for("offlineshop.confirmation_code", p=payment.payment_hash)
-            ),
+            )
         )
 
         success_action = UrlAction(
             tag=LnurlPaySuccessActionTag.url,
             url=url,
-            description=Max144Str(
-                "Open to get the confirmation code for your purchase."
-            ),
+            description="Open to get the confirmation code for your purchase.",
         )
-        invoice = parse_obj_as(LightningInvoice, LightningInvoice(payment.bolt11))
+        invoice = TypeAdapter(LightningInvoice).validate_python(
+            LightningInvoice(payment.bolt11)
+        )
 
         return LnurlPayActionResponse(
             pr=invoice,

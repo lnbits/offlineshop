@@ -29,7 +29,7 @@ async def api_shop_from_wallet(
 
     try:
         return {
-            **shop.dict(),
+            **shop.model_dump(),
             **{"otp_key": shop.otp_key, "items": [item.values(r) for item in items]},
         }
     except LnurlInvalidUrl as exc:
@@ -78,7 +78,7 @@ async def api_add_or_update_item(
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND, detail="Item not found"
             )
-        for k, v in data.dict().items():
+        for k, v in data.model_dump().items():
             setattr(item, k, v)
         await update_item(item)
 
@@ -101,7 +101,7 @@ async def api_update_offlineshop(
     if not shop:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
 
-    for k, v in data.dict().items():
+    for k, v in data.model_dump().items():
         setattr(shop, k, v)
 
     await update_shop(shop)
