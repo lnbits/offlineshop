@@ -9,7 +9,7 @@ db = Database("ext_offlineshop")
 
 async def create_shop(data: CreateShop) -> Shop:
     data.wordlist = data.wordlist or "\n".join(animals)
-    shop = Shop(id=urlsafe_short_hash(), **data.dict())
+    shop = Shop(id=urlsafe_short_hash(), **data.model_dump())
     await db.insert("offlineshop.shops", shop)
     return shop
 
@@ -40,7 +40,7 @@ async def create_item(
     shop: str,
     data: CreateItem,
 ) -> Item:
-    item = Item(id=urlsafe_short_hash(), shop=shop, **data.dict())
+    item = Item(id=urlsafe_short_hash(), shop=shop, **data.model_dump())
     await db.insert("offlineshop.items", item)
     return item
 

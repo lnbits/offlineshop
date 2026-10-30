@@ -20,7 +20,7 @@ def offlineshop_renderer():
 @offlineshop_generic_router.get("/", response_class=HTMLResponse)
 async def index(request: Request, user: User = Depends(check_user_exists)):
     return offlineshop_renderer().TemplateResponse(
-        "offlineshop/index.html", {"request": request, "user": user.json()}
+        "offlineshop/index.html", {"request": request, "user": user.model_dump_json()}
     )
 
 
