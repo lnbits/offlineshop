@@ -3,7 +3,7 @@
   "short_description": "Receive payments for products offline!",
   "tile": "/offlineshop/static/image/offlineshop.png",
   "version": "1.2.0",
-  "min_lnbits_version": "1.7.0-rc1",
+  "min_lnbits_version": "1.7.0",
   "contributors": [
     {
       "name": "fiatjaf",
