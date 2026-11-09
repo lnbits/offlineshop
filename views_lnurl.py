@@ -19,7 +19,11 @@ from .crud import get_item, get_shop
 offlineshop_lnurl_router = APIRouter()
 
 
-@offlineshop_lnurl_router.get("/lnurl/{item_id}", name="offlineshop.lnurl_response")
+@offlineshop_lnurl_router.get(
+    "/lnurl/{item_id}",
+    name="offlineshop.lnurl_response",
+    openapi_extra={"x-lnbits-local-lnurl": True},
+)
 async def lnurl_response(
     req: Request, item_id: str
 ) -> LnurlPayResponse | LnurlErrorResponse:
@@ -48,7 +52,11 @@ async def lnurl_response(
     )
 
 
-@offlineshop_lnurl_router.get("/lnurl/cb/{item_id}", name="offlineshop.lnurl_callback")
+@offlineshop_lnurl_router.get(
+    "/lnurl/cb/{item_id}",
+    name="offlineshop.lnurl_callback",
+    openapi_extra={"x-lnbits-local-lnurl": True},
+)
 async def lnurl_callback(
     request: Request, item_id: str
 ) -> LnurlPayActionResponse | LnurlErrorResponse:

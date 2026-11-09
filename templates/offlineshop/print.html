@@ -19,7 +19,7 @@
     el: '#vue',
     data() {
       return {
-        items: JSON.parse('{{ items | tojson | safe }}')
+        items: {{ items | tojson }}
       }
     },
     created() {
